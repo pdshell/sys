@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jt.sys.dao.SysUserDao">
+
+   <select id="findUserPermissions"
+           resultType="string">
+
+       select sm.permission
+       from sys_roles_users sru 
+       join sys_roles_menus srm 
+       join sys_menus sm
+       
+       on  sru.role_id=srm.role_id 
+       and srm.menu_id=sm.id
+       
+       where sru.user_id=#{userId}
+       
+   </select>
+
+   <!-- 更新用户信息 -->
+   <update id="updateObject">
+        update sys_users
+        <set>
+           <if test="username!=null and username!=''">
+             username=#{username},
+           </if>
+           <if test="password!=null and password!=''">
+             password=#{password},
+           </if>
+           <if test="mobile!=null and mobile!=''">
+             mobile=#{mobile},
+           </if>
+           <if test="email!=null and email!=''">
+             email=#{email},
+           </if>
+           <if test="modifiedUser!=null and modifiedUser!=''">
+            modifiedUser=#{modifiedUser},
+           </if>
+           <if test="salt!=null and salt !='' ">
+            salt=#{salt},
+           </if>
+            modifiedTime=now()
+        </set>
+        where id=#{id}
+   </update>
+
+   <!-- 根据id查找用户信息 -->
+   <select id="findObjectById"
+           resultType="sysUser">
+      select *
+      from sys_users  
+      where id=#{id}
+   </select>
+   <!-- 根据用户名查找用户信息 -->
+   
+   <select id="findObjectByUserName"
+           resultType="sysUser">
+      select *
+      from sys_users  
+      where username=#{username}
+   </select>
+   
+   <!-- 向表中写入记录 -->
+   <insert id="insertObject"
+           parameterType="sysUser"
+           useGeneratedKeys="true"
+           keyProperty="id">
+           insert into sys_users
+           (username,password,email,mobile,salt,valid,
+           createdUser,modifiedUser,createdTime,modifiedTime)
+           values
+           (#{username},#{password},#{email},#{mobile},#{salt},#{valid},
+           #{createdUser},#{modifiedUser},now(),now())
+   </insert>
+
+   <!-- 禁用和启用状态信息 -->
+   <update id="validById">
+       update sys_users
+       set valid=#{valid},modifiedTime=now(),
+           modifiedUser=#{modifiedUser}
+       where id=#{id}
+   </update>
+   
+ 
+   <sql id="pageWhereSqlId">
+    	<where>
+			<if test="username!=null and username!=''">
+				username LIKE CONCAT('%',#{username},'%')
+			</if>
+	</where>
+   </sql>
+   
+   <select id="findPageObjects" resultType="sysUser">
+	select
+			id,
+			username,
+			email,
+			mobile,
+			valid,
+			createdTime,
+			modifiedTime
+	from sys_users
+	<include refid="pageWhereSqlId"/>
+	LIMIT #{startIndex},#{pageSize}
+   </select>
+   
+   <select id="getRowCount"  parameterType="sysUser" 
+            resultType="java.lang.Integer">
+		select count(*) from sys_users
+		<include refid="pageWhereSqlId"/>
+   </select>
+   
+   
+   
+</mapper>
+
+
+
+
+
+
+
